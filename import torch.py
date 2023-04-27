@@ -1,7 +1,12 @@
 import torch
 
-x = torch.FloatTensor([[1, 2], [3, 4]])
-y = torch.FloatTensor([[5, 6], [7, 8]])
+#x = torch.FloatTensor([[0, 1, 2], [2, 1, 0]])
+#print(torch.ones_like(x))
+#print(torch.zeros_like(x))
 
-#dim = 0 은 첫번째 차원을 늘리라는 의미
-print(torch.cat([x, y], dim=0))
+x = torch.FloatTensor([[1, 2], [3, 4]])
+
+print(x.mul(2.))
+x=x.mul(2.)
+print(x.mul_(3))
+print(x) 
