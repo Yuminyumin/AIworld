@@ -3,20 +3,32 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-# 데이터
-x_train = torch.FloatTensor([[1], [2], [3]])
-y_train = torch.FloatTensor([[2], [4], [6]])
-# 모델 초기화
-W = torch.zeros(1, requires_grad=True)
-b = torch.zeros(1, requires_grad=True)
-# optimizer 설정
-optimizer = optim.SGD([W, b], lr=0.01)
+torch.manual_seed(1)
 
-nb_epochs = 2000 # 원하는만큼 경사 하강법을 반복
+# 훈련 데이터
+x_train  =  torch.FloatTensor([[73,  80,  75], 
+                               [93,  88,  93], 
+                               [89,  91,  80], 
+                               [96,  98,  100],   
+                               [73,  66,  70]])  
+y_train  =  torch.FloatTensor([[152],  [185],  [180],  [196],  [142]])
+
+# 가중치와 편향 선언
+W = torch.zeros((3, 1), requires_grad=True)
+b = torch.zeros(1, requires_grad=True)
+
+hypothesis = x_train.matmul(W) + b
+
+# optimizer 설정
+optimizer = optim.SGD([W, b], lr=1e-5)
+
+
+nb_epochs = 20
 for epoch in range(nb_epochs + 1):
 
     # H(x) 계산
-    hypothesis = x_train * W + b
+    # 편향 b는 브로드 캐스팅되어 각 샘플에 더해집니다.
+    hypothesis = x_train.matmul(W) + b
 
     # cost 계산
     cost = torch.mean((hypothesis - y_train) ** 2)
@@ -26,8 +38,6 @@ for epoch in range(nb_epochs + 1):
     cost.backward()
     optimizer.step()
 
-    # 100번마다 로그 출력
-    if epoch % 100 == 0:
-        print('Epoch {:4d}/{} W: {:.3f}, b: {:.3f} Cost: {:.6f}'.format(
-            epoch, nb_epochs, W.item(), b.item(), cost.item()
-        ))
+    print('Epoch {:4d}/{} hypothesis: {} Cost: {:.6f}'.format(
+        epoch, nb_epochs, hypothesis.squeeze().detach(), cost.item()
+    ))
