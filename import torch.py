@@ -10,5 +10,26 @@ y_data = [[0], [0], [0], [1], [1], [1]]
 x_train = torch.FloatTensor(x_data)
 y_train = torch.FloatTensor(y_data)
 
-print(x_train.shape)
-print(y_train.shape)
+# 모델 초기화
+W = torch.zeros((2, 1), requires_grad=True)
+b = torch.zeros(1, requires_grad=True)
+# optimizer 설정
+optimizer = optim.SGD([W, b], lr=1)
+
+nb_epochs = 1000
+for epoch in range(nb_epochs + 1):
+
+    # Cost 계산
+    hypothesis = torch.sigmoid(x_train.matmul(W) + b)
+    cost = -(y_train * torch.log(hypothesis) + 
+             (1 - y_train) * torch.log(1 - hypothesis)).mean()
+
+    # cost로 H(x) 개선
+    optimizer.zero_grad()
+    cost.backward()
+    optimizer.step()
+
+
+
+print(W)
+print(b)
