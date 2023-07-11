@@ -1,26 +1,21 @@
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-import pickle
-
-from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_extraction.text import TfidfVectorizer
-from scipy.sparse import csr_matrix
 import xgboost as xgb
+from sklearn.preprocessing import LabelEncoder
+from scipy.sparse import csr_matrix
+from sklearn.model_selection import GridSearchCV
 
 # ---- Preprocessing
 # CSV 파일 로드
 data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
-s_data = data.sample(frac=1) # 이건 샘플링하려고 shuffle
-
-s_data_s = s_data[1000:10000] # 샘플링 용이고 다 쓰려면 s_data_s = data로 하면 돼
+s_data = data.sample(frac=1)  # 이건 샘플링하려고 shuffle
+s_data_s = s_data[1000:10000]
 
 # 텍스트 데이터와 레이블 분리
 X = s_data_s['posts']
 y = s_data_s['type']
-
 
 # 레이블 인코딩
 label_encoder = LabelEncoder()
@@ -36,7 +31,6 @@ tfidf_vectorizer = TfidfVectorizer()
 train_tfidf_matrix = tfidf_vectorizer.fit_transform(X_train)
 test_tfidf_matrix = tfidf_vectorizer.transform(X_test)
 
-
 # 희소 행렬로 변환
 train_sparse_tfidf_matrix = csr_matrix(train_tfidf_matrix)
 test_sparse_tfidf_matrix = csr_matrix(test_tfidf_matrix)
@@ -45,39 +39,39 @@ test_sparse_tfidf_matrix = csr_matrix(test_tfidf_matrix)
 dtrain = xgb.DMatrix(train_sparse_tfidf_matrix, label=y_train, enable_categorical=True)
 dtest = xgb.DMatrix(test_sparse_tfidf_matrix, label=y_test, enable_categorical=True)
 
-
 # ----- Model
-num_class = len(pd.Categorical(y).categories)
+num_class = len(label_encoder.classes_)
+
+# 하이퍼파라미터 그리드 설정
+param_grid = {
+    'n_estimators': [100, 300],
+    'max_depth': [3, 7],
+    'learning_rate': [0.1, 0.01]
+}
 
 # XGBoost 모델 초기화
-params = {"objective":'multi:softmax', 
-                            "num_class":num_class, 
-                            "seed":42}
-n = 100 # 이건 맘대로 boost round 정해주면 되는 변수
+model = xgb.XGBClassifier(objective='multi:softmax', num_class=num_class, random_state=42)
 
-evals  = [(dtrain, "train"), (dtest, "validation")]
+# GridSearchCV를 사용하여 하이퍼파라미터 튜닝
+grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=2, scoring='accuracy')
+grid_search.fit(train_sparse_tfidf_matrix, y_train)
 
-# Train
-model = xgb.train(params=params,
-                    dtrain=dtrain,
-                    num_boost_round=n,
-                    evals = evals)
+# 최적의 하이퍼파라미터 조합 출력
+print("Best Parameters:", grid_search.best_params_)
+print("Best Score:", grid_search.best_score_)
 
-# Predict
-preds = model.predict(dtest)
-print(preds)
+# 최적의 모델로 재학습
+best_model = grid_search.best_estimator_
+best_model.fit(train_sparse_tfidf_matrix, y_train)
 
-# 학습 데이터에서 유형과 해당 인덱스 간의 매핑 생성
-type_mapping = {}
-for idx, mbti_type in enumerate(label_encoder.classes_):
-    type_mapping[idx] = mbti_type
-
-# 예측 결과를 MBTI 유형으로 변환
-predicted_types = [type_mapping[prediction] for prediction in preds]
+# 예측
+preds = best_model.predict(test_sparse_tfidf_matrix)
 
 # 예측 결과 출력
-for idx, predicted_type in enumerate(predicted_types):
+for idx, prediction in enumerate(preds):
+    predicted_type = label_encoder.inverse_transform([prediction])[0]
     print(f"Sample {idx+1}: {predicted_type}")
 
-accuracy = accuracy_score(y_test, predicted_types)
+# 정확도 계산
+accuracy = accuracy_score(y_test, preds)
 print(f'Accuracy: {accuracy}')
