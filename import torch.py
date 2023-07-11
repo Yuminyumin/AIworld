@@ -49,10 +49,13 @@ data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
 s_data = data.sample(frac=1) #샘플링을 위한 shuffle
 s_data_s = s_data[1000:4000]
 
-# 텍스트 데이터와 레이블 분리
+# 텍스트 데이터와 레이블 분리 
 X = s_data_s['posts']
 y = s_data_s['type']
 
+# 결측치를 0으로 대체
+s_data_s.fillna(0, inplace=True)
+    
 # 레이블 인코딩
 label_encoder = LabelEncoder()
 label_y = label_encoder.fit_transform(y)
