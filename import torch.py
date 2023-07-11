@@ -13,7 +13,7 @@ import xgboost as xgb
 # ---- Preprocessing
 # CSV 파일 로드
 data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
-s_data = data.sample(frac=1) # 이건 샘플링하려고 shuffle한거야
+s_data = data.sample(frac=1) # 이건 샘플링하려고 shuffle
 
 s_data_s = s_data[1000:10000] # 샘플링 용이고 다 쓰려면 s_data_s = data로 하면 돼
 
@@ -53,7 +53,7 @@ num_class = len(pd.Categorical(y).categories)
 params = {"objective":'multi:softmax', 
                             "num_class":num_class, 
                             "seed":42}
-n = 100 # 이건 너 맘대로 boost round 정해주면 되는 변수
+n = 100 # 이건 맘대로 boost round 정해주면 되는 변수
 
 evals  = [(dtrain, "train"), (dtest, "validation")]
 
@@ -66,3 +66,18 @@ model = xgb.train(params=params,
 # Predict
 preds = model.predict(dtest)
 print(preds)
+
+# 학습 데이터에서 유형과 해당 인덱스 간의 매핑 생성
+type_mapping = {}
+for idx, mbti_type in enumerate(label_encoder.classes_):
+    type_mapping[idx] = mbti_type
+
+# 예측 결과를 MBTI 유형으로 변환
+predicted_types = [type_mapping[prediction] for prediction in preds]
+
+# 예측 결과 출력
+for idx, predicted_type in enumerate(predicted_types):
+    print(f"Sample {idx+1}: {predicted_type}")
+
+accuracy = accuracy_score(y_test, predicted_types)
+print(f'Accuracy: {accuracy}')
