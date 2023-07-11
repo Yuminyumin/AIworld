@@ -1,44 +1,68 @@
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+import pickle
+
+from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import csr_matrix
-from sklearn.preprocessing import LabelEncoder
 import xgboost as xgb
 
+# ---- Preprocessing
 # CSV 파일 로드
-data = pd.read_csv('c:\\Users\\신유민\\Desktop\\MBTI 500.csv')
+data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
+s_data = data.sample(frac=1) # 이건 샘플링하려고 shuffle한거야
+
+s_data_s = s_data[1000:10000] # 샘플링 용이고 다 쓰려면 s_data_s = data로 하면 돼
+
+# 텍스트 데이터와 레이블 분리
+X = s_data_s['posts']
+y = s_data_s['type']
+
 
 # 레이블 인코딩
 label_encoder = LabelEncoder()
-data['label'] = label_encoder.fit_transform(data['type'])
+label_y = label_encoder.fit_transform(y)
+
+# 학습 데이터와 테스트 데이터로 분할
+X_train, X_test, y_train, y_test = train_test_split(X, label_y, test_size=0.3, random_state=42)
 
 # TF-IDF 벡터화 객체 생성
 tfidf_vectorizer = TfidfVectorizer()
 
 # 텍스트 데이터에 TF-IDF 적용
-tfidf_matrix = tfidf_vectorizer.fit_transform(data['posts'])
+train_tfidf_matrix = tfidf_vectorizer.fit_transform(X_train)
+test_tfidf_matrix = tfidf_vectorizer.transform(X_test)
+
 
 # 희소 행렬로 변환
-sparse_tfidf_matrix = csr_matrix(tfidf_matrix)
+train_sparse_tfidf_matrix = csr_matrix(train_tfidf_matrix)
+test_sparse_tfidf_matrix = csr_matrix(test_tfidf_matrix)
 
 # XGBoost 학습용 데이터 생성
-dtrain = xgb.DMatrix(sparse_tfidf_matrix, label=data['label'])
+dtrain = xgb.DMatrix(train_sparse_tfidf_matrix, label=y_train, enable_categorical=True)
+dtest = xgb.DMatrix(test_sparse_tfidf_matrix, label=y_test, enable_categorical=True)
+
+
+# ----- Model
+num_class = len(pd.Categorical(y).categories)
 
 # XGBoost 모델 초기화
-model = xgb.XGBClassifier()
+params = {"objective":'multi:softmax', 
+                            "num_class":num_class, 
+                            "seed":42}
+n = 100 # 이건 너 맘대로 boost round 정해주면 되는 변수
 
-# 모델 학습
-print("모델 학습 시작")
-num_epochs = 100
-for epoch in range(num_epochs):
-    model.fit(sparse_tfidf_matrix, data['label'], verbose=True)
-    progress = (epoch + 1) / num_epochs * 100
-    print(f"진행률: {progress:.2f}%")
-print("모델 학습 완료")
+evals  = [(dtrain, "train"), (dtest, "validation")]
 
-# 학습 완료 후 모델을 사용하여 예측 수행
-print("예측 시작")
-predictions = model.predict(sparse_tfidf_matrix, output_margin=True)
-print("예측 완료")
+# Train
+model = xgb.train(params=params,
+                    dtrain=dtrain,
+                    num_boost_round=n,
+                    evals = evals)
 
-# 예측 결과 출력
-print(predictions)
+# Predict
+preds = model.predict(dtest)
+print(preds)
