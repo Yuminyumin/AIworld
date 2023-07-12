@@ -12,41 +12,6 @@ from collections import Counter
 # CSV 파일 로드
 data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
 s_data = data.sample(frac=1) #샘플링을 위한 shuffle
-s_data_s = s_data[1000:5000]
-
-# 텍스트 데이터와 레이블 분리
-X = s_data_s['posts']
-y = s_data_s['type']
-
-# 레이블 인코딩
-label_encoder = LabelEncoder()
-label_y = label_encoder.fit_transform(y)
-
-# 클래스별 샘플 개수 확인
-class_counts = Counter(label_y)
-print("Original class counts:", class_counts)
-
-# TF-IDF 벡터화 객체 생성
-tfidf_vectorizer = TfidfVectorizer()
-X_tfidf = tfidf_vectorizer.fit_transform(X)
-
-# 희소 행렬로 변환
-sparse_tfidf_matrix = csr_matrix(X_tfidf)
-
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-import xgboost as xgb
-from sklearn.preprocessing import LabelEncoder
-from scipy.sparse import csr_matrix
-from sklearn.model_selection import GridSearchCV
-from imblearn.over_sampling import SMOTE
-from collections import Counter
-
-# CSV 파일 로드
-data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
-s_data = data.sample(frac=1) #샘플링을 위한 shuffle
 s_data_s = s_data[1000:4000]
 
 # 텍스트 데이터와 레이블 분리 
@@ -54,7 +19,7 @@ X = s_data_s['posts']
 y = s_data_s['type']
 
 # 결측치를 0으로 대체
-s_data_s.fillna(0, inplace=True)
+s_data_s.loc[:, 'posts'].fillna(0, inplace=True)
     
 # 레이블 인코딩
 label_encoder = LabelEncoder()
@@ -72,7 +37,7 @@ X_tfidf = tfidf_vectorizer.fit_transform(X)
 sparse_tfidf_matrix = csr_matrix(X_tfidf)
 
 # SMOTE를 사용하여 클래스 불균형 보정
-smote = SMOTE(k_neighbors=5)
+smote = SMOTE(k_neighbors=2)
 X_resampled, label_y_resampled = smote.fit_resample(sparse_tfidf_matrix, label_y)
 
 # 조정된 클래스별 샘플 개수 확인
@@ -122,4 +87,3 @@ for idx, prediction in enumerate(preds):
 # 정확도 계산
 accuracy = accuracy_score(y_test, preds)
 print(f'Accuracy: {accuracy}')
-
