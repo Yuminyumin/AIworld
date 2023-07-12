@@ -19,7 +19,8 @@ X = s_data_s['posts']
 y = s_data_s['type']
 
 # 결측치를 0으로 대체
-s_data_s.loc[:, 'posts'].fillna(0, inplace=True)
+s_data_s = s_data_s.copy()
+s_data_s['posts'].fillna(0, inplace=True)
     
 # 레이블 인코딩
 label_encoder = LabelEncoder()
