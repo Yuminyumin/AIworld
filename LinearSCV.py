@@ -7,13 +7,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import *
+from sklearn.metrics import accuracy_score
 from sklearn.linear_model import LogisticRegression
 from tqdm.notebook import tqdm
-import spacy
 from nltk.stem.snowball import SnowballStemmer
 
-train = pd.read_csv('/content/drive/MyDrive/spp_project/MBTI.csv')
+train = pd.read_csv('c:\\Users\\신유민\\Desktop\\MBTI 500.csv', encoding='utf-8')
 train.head()
 train.tail()
 train
@@ -90,4 +89,5 @@ text_clf.fit(X_train, y_train)
 pred = text_clf.predict(X_valid)
 
 # valid data에서의 정확도
-accuracy_score(pred, y_valid)
+accuracy = accuracy_score(pred, y_valid)
+print(f'Accuracy: {accuracy}')
