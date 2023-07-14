@@ -9,6 +9,14 @@ from skopt import BayesSearchCV
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 import time
+import os
+import multiprocessing as mp
+import tempfile
+import joblib
+mp.set_start_method('spawn')
+
+joblib_temp_folder = tempfile.mkdtemp()
+os.environ['JOBLIB_TEMP_FOLDER'] = joblib_temp_folder
 
 # CSV 파일 로드
 data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
@@ -35,13 +43,16 @@ print("Original class counts:", class_counts)
 tfidf_vectorizer = TfidfVectorizer()
 X_tfidf = tfidf_vectorizer.fit_transform(X)
 print("객체 생성")
+
 # 희소 행렬로 변환
 sparse_tfidf_matrix = csr_matrix(X_tfidf)
 print("희소 행렬")
+
 # SMOTE를 사용하여 클래스 불균형 보정
 smote = SMOTE(k_neighbors=2)
 X_resampled, label_y_resampled = smote.fit_resample(sparse_tfidf_matrix, label_y)
 print("불균형 보정")
+
 # 조정된 클래스별 샘플 개수 확인
 resampled_class_counts = Counter(label_y_resampled)
 print("Resampled class counts:", resampled_class_counts)
@@ -49,10 +60,12 @@ print("Resampled class counts:", resampled_class_counts)
 # 학습 데이터와 테스트 데이터로 분할
 X_train, X_test, y_train, y_test = train_test_split(X_resampled, label_y_resampled, test_size=0.3, random_state=42)
 print("분할완료")
+
 # XGBoost 학습용 데이터 생성
 dtrain = xgb.DMatrix(X_train, label=y_train, enable_categorical=True)
 dtest = xgb.DMatrix(X_test, label=y_test, enable_categorical=True)
 print("학습용 데이터 생성 완료")
+
 # ----- Model
 num_class = len(label_encoder.classes_)
 
@@ -63,9 +76,11 @@ param_dist = {
     'learning_rate': (0.01, 0.1, 'log-uniform')
 }
 print("하이퍼파라미터 범위 설정 완료")
+
 # XGBoost 모델 초기화
 model = xgb.XGBClassifier(objective='multi:softmax', num_class=num_class, random_state=42)
 print("모델 초기화 완료")
+
 # BayesSearchCV를 사용하여 하이퍼파라미터 탐색
 bayes_search = BayesSearchCV(estimator=model, search_spaces=param_dist, cv=4, scoring='accuracy', n_jobs=-1, n_iter=8)
 
