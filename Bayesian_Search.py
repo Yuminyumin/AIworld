@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
 from scipy.sparse import csr_matrix
-from sklearn.model_selection import RandomizedSearchCV
+from skopt import BayesSearchCV
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 import time
@@ -58,41 +58,26 @@ num_class = len(label_encoder.classes_)
 
 # 하이퍼파라미터 범위 설정
 param_dist = {
-    'n_estimators': [10, 30],
-    'max_depth': [3, 4],
-    'learning_rate': [0.1, 0.01]
+    'n_estimators': (10, 30),
+    'max_depth': (3, 4),
+    'learning_rate': (0.01, 0.1, 'log-uniform')
 }
 print("하이퍼파라미터 범위 설정 완료")
 # XGBoost 모델 초기화
 model = xgb.XGBClassifier(objective='multi:softmax', num_class=num_class, random_state=42)
 print("모델 초기화 완료")
-
-# RandomizedSearchCV를 사용하여 하이퍼파라미터 탐색
-random_search = RandomizedSearchCV(estimator=model, param_distributions=param_dist, cv=4, scoring='accuracy', n_jobs=1)
+# BayesSearchCV를 사용하여 하이퍼파라미터 탐색
+bayes_search = BayesSearchCV(estimator=model, search_spaces=param_dist, cv=4, scoring='accuracy', n_jobs=-1, n_iter=8)
 
 # 탐색 진행
-total_iterations = 8  # 탐색할 총 반복 횟수
-random_search.fit(X_train, y_train)
-
-# 실시간 탐색 진행 상황 출력 함수
-def print_search_progress(search, total_iterations):
-    results = search.cv_results_
-    mean_fit_times = results['mean_fit_time']
-    mean_scores = results['mean_test_score']
-
-    print("Search Progress:")
-    for i in range(total_iterations):
-        print(f"Iteration {i+1}/{total_iterations} - Mean Fit Time: {mean_fit_times[i]:.3f}s, Mean Score: {mean_scores[i]:.3f}")
-
-# 실시간 탐색 진행 상황 출력
-print_search_progress(random_search, total_iterations)
+bayes_search.fit(X_train, y_train)
 
 # 최적의 하이퍼파라미터 조합 출력
-print("Best Parameters:", random_search.best_params_)
-print("Best Score:", random_search.best_score_)
+print("Best Parameters:", bayes_search.best_params_)
+print("Best Score:", bayes_search.best_score_)
 
 # 최적의 모델로 재학습
-best_model = random_search.best_estimator_
+best_model = bayes_search.best_estimator_
 best_model.fit(X_train, y_train)
 
 # 예측
