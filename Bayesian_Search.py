@@ -13,10 +13,11 @@ import os
 import multiprocessing as mp
 import tempfile
 import joblib
-mp.set_start_method('spawn')
+from multiprocessing import set_start_method
 
 joblib_temp_folder = tempfile.mkdtemp()
 os.environ['JOBLIB_TEMP_FOLDER'] = joblib_temp_folder
+set_start_method('spawn')
 
 # CSV 파일 로드
 data = pd.read_csv(r'c:\Users\신유민\Desktop\MBTI 500.csv', encoding='utf-8')
@@ -82,9 +83,7 @@ model = xgb.XGBClassifier(objective='multi:softmax', num_class=num_class, random
 print("모델 초기화 완료")
 
 # BayesSearchCV를 사용하여 하이퍼파라미터 탐색
-bayes_search = BayesSearchCV(estimator=model, search_spaces=param_dist, cv=4, scoring='accuracy', n_jobs=-1, n_iter=8)
-
-# 탐색 진행
+bayes_search = BayesSearchCV(estimator=model, search_spaces=param_dist, cv=4, scoring='accuracy', n_jobs=1, n_iter=8)  # n_jobs 값을 1로 수정
 bayes_search.fit(X_train, y_train)
 
 # 최적의 하이퍼파라미터 조합 출력
