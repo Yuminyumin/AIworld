@@ -14,6 +14,8 @@ import multiprocessing as mp
 import tempfile
 import joblib
 from multiprocessing import set_start_method
+import numpy as np
+
 
 joblib_temp_folder = tempfile.mkdtemp()
 os.environ['JOBLIB_TEMP_FOLDER'] = joblib_temp_folder
@@ -74,8 +76,9 @@ num_class = len(label_encoder.classes_)
 param_dist = {
     'n_estimators': (10, 30),
     'max_depth': (3, 4),
-    'learning_rate': (0.01, 0.1, 'log-uniform')
+    'learning_rate': (0.01, 0.1, 'log-uniform')  # 수정된 부분
 }
+
 print("하이퍼파라미터 범위 설정 완료")
 
 # XGBoost 모델 초기화
