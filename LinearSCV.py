@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras.preprocessing.text import Tokenizer
+from keras.preprocessing.text import Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
@@ -11,6 +11,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.linear_model import LogisticRegression
 from tqdm.notebook import tqdm
 from nltk.stem.snowball import SnowballStemmer
+import warnings
+warnings.filterwarnings('ignore')
 
 train = pd.read_csv('c:\\Users\\신유민\\Desktop\\MBTI 500.csv', encoding='utf-8')
 train.head()
@@ -74,15 +76,13 @@ X_train_tfidf = tfidf.fit_transform(X_train)
 
 clf = LinearSVC()
 # 정확도 기준 설정
-cv = GridSearchCV(clf, {'C': [0.1, 0.3, 0.5, 1.0]}, scoring = "accuracy")
+cv = GridSearchCV(clf, {'C': [0.35, 0.4, 0.45]}, scoring = "accuracy")
+cv.fit(X_train_tfidf, y_train)
 
-text_clf = Pipeline([('tfidf',TfidfVectorizer()),('clf',cv)])
-text_clf.fit(X_train, y_train)
+C = cv.best_params_['C']
+print("최적의 파라미터 C: ", C)
 
-C = cv.best_estimator_.C
-print("최적의 파라미터 C : ", C)
-
-text_clf = Pipeline([('tfidf',TfidfVectorizer()),('clf',LinearSVC(C=0.3))])
+text_clf = Pipeline([('tfidf', TfidfVectorizer()), ('clf', LinearSVC(C=C))])
 text_clf.fit(X_train, y_train)
 
 # valid 데이터의 mbti 예측
