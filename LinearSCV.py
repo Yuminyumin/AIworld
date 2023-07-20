@@ -91,4 +91,3 @@ pred = text_clf.predict(X_valid)
 # valid data에서의 정확도
 accuracy = accuracy_score(pred, y_valid)
 print(f'Accuracy: {accuracy}')
-
