@@ -32,13 +32,11 @@ print("test data:", test.shape)
 
 # NLTK에서 사용할 SnowballStemmer 로드
 s_stemmer = SnowballStemmer(language='english')
-
 def removeStopwords(s):
     stop_words = set(stopwords.words('english'))
     words = word_tokenize(s)
     new_words = [word for word in words if word.lower() not in stop_words]
     return ' '.join(new_words)
-
 # 어간 추출 함수
 def replaceStemwords(s):
     words = word_tokenize(s)
