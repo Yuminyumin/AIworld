@@ -104,8 +104,8 @@ pred = text_clf.predict(X_valid)
 print("pred",pred)
 
 # valid data에서의 정확도
-accuracy_score(pred, Y_valid)
-print("accuracy",accuracy_score)
+accuracy = accuracy_score(pred, Y_valid)
+print("accuracy",accuracy)
 
 # train 데이터프레임과 test 데이터프레임을 합친다고 가정
 data = pd.concat([train, test], axis=1)
