@@ -6,6 +6,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
+from nltk.corpus import stopwords  # 불용어 처리에 필요한 모듈 불러오기
 
 # 데이터 불러오기
 train = pd.read_csv('c:/Users/user/Desktop/MBTI.csv', encoding='utf-8')
@@ -33,6 +34,17 @@ X_valid_sequences = tokenizer.texts_to_sequences(X_valid)
 max_length = 200  # 시퀀스의 최대 길이
 X_train_padded = pad_sequences(X_train_sequences, maxlen=max_length, padding='post', truncating='post')
 X_valid_padded = pad_sequences(X_valid_sequences, maxlen=max_length, padding='post', truncating='post')
+
+# 불용어 처리를 위한 준비
+stop_words = set(stopwords.words('english'))
+
+# 불용어 처리 함수 정의
+def remove_stopwords(texts):
+    return [[word for word in sentence if word not in stop_words] for sentence in texts]
+
+# 텍스트 전처리 - 불용어 처리
+X_train_padded = remove_stopwords(X_train_padded)
+X_valid_padded = remove_stopwords(X_valid_padded)
 
 # 딥러닝 모델 구축 (LSTM) with Hyperparameter Tuning
 model = tf.keras.Sequential([
