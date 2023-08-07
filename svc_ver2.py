@@ -35,34 +35,6 @@ train['posts'].nunique() == len(train['posts'])
 print("train data : ", train.shape)
 print("test data : ", test.shape)
 
-# # E, I 빈도수 확인
-# first = []
-# for i in range(len(train)):
-#     first.append(train['type'][i][0])
-# first = pd.DataFrame(first)
-# first[0].value_counts()
-
-# # N, S 빈도수 확인
-# second = []
-# for i in range(len(train)):
-#     second.append(train['type'][i][1])
-# second = pd.DataFrame(second)
-# second[0].value_counts()
-
-# # T, F 빈도수 확인
-# third = []
-# for i in range(len(train)):
-#     third.append(train['type'][i][2])
-# third = pd.DataFrame(third)
-# third[0].value_counts()
-
-# # P, J 빈도수 확인
-# fourth = []
-# for i in range(len(train)):
-#     fourth.append(train['type'][i][3])
-# fourth = pd.DataFrame(fourth)
-# fourth[0].value_counts()
-
 # # NLTK 불용어 처리를 위해 불용어 리스트 다운로드
 # nltk.download('stopwords')
 # nltk.download('punkt')
@@ -110,19 +82,3 @@ print("accuracy",accuracy)
 # # train 데이터프레임과 test 데이터프레임을 합친다고 가정
 # data = pd.concat([train, test], axis=1)
 # print(data.head())
-
-# 예측값 시각화
-plt.figure(figsize=(10, 6))
-plt.bar(range(len(pred)), pred, color='blue')
-plt.title('예측값')
-plt.xlabel('샘플 번호')
-plt.ylabel('예측된 MBTI 유형')
-plt.show()
-
-# 정확도 시각화
-plt.figure(figsize=(6, 4))
-plt.bar(['정확도'], [accuracy], color='green')
-plt.title('정확도')
-plt.ylabel('정확도')
-plt.ylim(0, 1)
-plt.show()
