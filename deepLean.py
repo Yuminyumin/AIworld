@@ -49,16 +49,16 @@ X_valid_padded = remove_stopwords(X_valid_padded)
 # 딥러닝 모델 구축 (LSTM) with Hyperparameter Tuning
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(input_dim=max_words, output_dim=64, input_length=max_length),
-    tf.keras.layers.LSTM(128, dropout=0.2, recurrent_dropout=0.2),  # 조정 가능한 하이퍼파라미터
-    tf.keras.layers.Dense(32, activation='relu'),  # 조정 가능한 하이퍼파라미터
-    tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax')  # softmax로 변경 or sigmoid
+    tf.keras.layers.LSTM(units = 128, dropout=0.2, recurrent_dropout=0.2), # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.Dense(32, activation='relu'), # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax') 
 ])
 
 # 모델 컴파일
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 # 모델 훈련
-model.fit(X_train_padded, Y_train, epochs=15, batch_size=64, validation_data=(X_valid_padded, Y_valid))  # 조정 가능한 하이퍼파라미터
+model.fit(X_train_padded, Y_train, epochs=10, batch_size=64, validation_data=(X_valid_padded, Y_valid)) # 조정 가능한 하이퍼파라미터
 
 # 검증 데이터에서의 예측 및 평가
 pred_probs = model.predict(X_valid_padded)
