@@ -1,22 +1,26 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
 
 # 데이터 불러오기
-train = pd.read_csv('c:\Users\user\Desktop\MBTI 500', encoding='utf-8')
+train = pd.read_csv('c:/Users/user/Desktop/MBTI.csv', encoding='utf-8')
 test = train.drop(['type'], axis=1)
 
 # 내용변수와 타입변수 설정
 X = train['posts']
 Y = train['type']
 
+# 레이블 인코딩
+label_encoder = LabelEncoder()
+Y_encoded = label_encoder.fit_transform(Y)
+
 # 훈련 데이터와 검증 데이터 분리
-X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y, test_size=0.2, random_state=1)
+X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y_encoded, test_size=0.2, random_state=1)  # Y_encoded로 변경
 
 # 텍스트 전처리
 max_words = 5000  # 사용할 최대 단어 개수
@@ -35,9 +39,10 @@ model = tf.keras.Sequential([
     tf.keras.layers.Embedding(input_dim=max_words, output_dim=64, input_length=max_length),
     tf.keras.layers.LSTM(128, dropout=0.2, recurrent_dropout=0.2),  # 조정 가능한 하이퍼파라미터
     tf.keras.layers.Dense(32, activation='relu'),  # 조정 가능한 하이퍼파라미터
-    tf.keras.layers.Dense(len(Y_train.unique()), activation='softmax')
+    tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax')  # softmax로 변경 or sigmoid
 ])
-#모델 컴파일
+
+# 모델 컴파일
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 # 모델 훈련
