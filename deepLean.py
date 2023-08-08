@@ -9,23 +9,14 @@ from sklearn.preprocessing import LabelEncoder
 from nltk.corpus import stopwords
 from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
-from imblearn.over_sampling import RandomOverSampler
 from imblearn.over_sampling import SMOTE
-from collections import Counter
-
-# Fix encoding issues in mbti_twitter.csv
-with open('c:/Users/user/Desktop/mbtidata/mbti_twitter.csv', 'r', encoding='utf-8', errors='ignore') as file:
-    content = file.read()
-    with open('mbti_twitter_fixed.csv', 'w', encoding='utf-8') as new_file:
-        new_file.write(content)
 
 # 데이터 불러오기
 data1 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti.csv', encoding='utf-8')  # mbti500
-data2 = pd.read_csv('mbti_twitter_fixed.csv', encoding='utf-8', dtype={'column_name': str}, low_memory=False)
-data3 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti_1.csv', encoding='utf-8') #mbti_1
+data3 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti_1.csv', encoding='utf-8') # mbti_1
 
 # 데이터 병합
-all_data = pd.concat([data1, data2, data3], ignore_index=True)
+all_data = pd.concat([data1, data3], ignore_index=True)
 
 # 내용변수와 타입변수 설정
 X = all_data['posts']
@@ -36,21 +27,21 @@ label_encoder = LabelEncoder()
 Y_encoded = label_encoder.fit_transform(Y)
 
 # 훈련 데이터와 검증 데이터 분리
-X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y_encoded, test_size=0.3, random_state=1)  # Y_encoded로 변경
+X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y_encoded, test_size=0.3, random_state=1)
 
 # 훈련 데이터와 검증 데이터의 NaN 값을 빈 문자열로 대체
 X_train = X_train.apply(lambda x: str(x) if pd.notna(x) else '') 
 X_valid = X_valid.apply(lambda x: str(x) if pd.notna(x) else '')
 
 # 텍스트 전처리
-max_words = 5000  # 사용할 최대 단어 개수
+max_words = 5000
 tokenizer = Tokenizer(num_words=max_words, oov_token="<OOV>")
 tokenizer.fit_on_texts(X_train)
 
 X_train_sequences = tokenizer.texts_to_sequences(X_train)
 X_valid_sequences = tokenizer.texts_to_sequences(X_valid)
 
-max_length = 200  # 시퀀스의 최대 길이
+max_length = 200
 X_train_padded = pad_sequences(X_train_sequences, maxlen=max_length, padding='post', truncating='post')
 X_valid_padded = pad_sequences(X_valid_sequences, maxlen=max_length, padding='post', truncating='post')
 
