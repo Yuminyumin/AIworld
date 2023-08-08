@@ -6,15 +6,19 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
-from nltk.corpus import stopwords  # 불용어 처리에 필요한 모듈 불러오기
+from nltk.corpus import stopwords
 
 # 데이터 불러오기
-train = pd.read_csv('c:/Users/user/Desktop/MBTI.csv', encoding='utf-8')
-test = train.drop(['type'], axis=1)
+data1 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti.csv', encoding='utf-8')  # mbti500
+data2 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti_twitter.csv', encoding='utf-8') #mbti_twitter
+data3 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti_1.csv', encoding='utf-8') #mbti_1
+
+# 데이터 병합
+all_data = pd.concat([data1, data2, data3], ignore_index=True)
 
 # 내용변수와 타입변수 설정
-X = train['posts']
-Y = train['type']
+X = all_data['posts']
+Y = all_data['type']
 
 # 레이블 인코딩
 label_encoder = LabelEncoder()
