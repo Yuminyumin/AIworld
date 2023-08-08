@@ -59,8 +59,8 @@ X_valid_padded = remove_stopwords(X_valid_padded)
 # 딥러닝 모델 구축 (LSTM) with Hyperparameter Tuning
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(input_dim=max_words, output_dim=64, input_length=max_length),
-    tf.keras.layers.LSTM(units = 64, dropout=0.3, recurrent_dropout=0.2), # 조정 가능한 하이퍼파라미터
-    tf.keras.layers.Dense(32, activation='relu'), # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.LSTM(units = 32, dropout=0.5, recurrent_dropout=0.2),                                                           # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.Dense(22, activation='relu'),                                                                                   # 조정 가능한 하이퍼파라미터
     tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax') 
 ])
 
@@ -74,16 +74,24 @@ X_valid_padded = np.array(X_valid_padded)
 Y_train = np.array(Y_train)
 
 # Early Stopping 콜백 정의
-early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=1, restore_best_weights=True)
 
 # 모델 훈련
-model.fit(X_train_padded, Y_train, epochs=10, batch_size=64, validation_data=(X_valid_padded, Y_valid), callbacks=[early_stopping])# 조정 가능한 하이퍼파라미터
+model.fit(X_train_padded, Y_train, epochs=7, batch_size=32, validation_data=(X_valid_padded, Y_valid), callbacks=[early_stopping]) # 조정 가능한 하이퍼파라미터
 
 # 검증 데이터에서의 예측 및 평가
 pred_probs = model.predict(X_valid_padded)
 pred_labels = np.argmax(pred_probs, axis=1)
 accuracy = accuracy_score(pred_labels, Y_valid)
 print("Accuracy:", accuracy)
+
+# True Positive (TP)와 False Negative (FN) 계산
+TP = np.sum(np.logical_and(pred_labels == 1, Y_valid == 1))
+FN = np.sum(np.logical_and(pred_labels == 0, Y_valid == 1))
+
+# 재현율 계산
+recall = TP / (TP + FN)
+print("Recall:", recall)
 
 # #클래스 개수 확인
 # class_counts = all_data['type'].value_counts()
