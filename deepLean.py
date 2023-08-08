@@ -9,6 +9,10 @@ from sklearn.preprocessing import LabelEncoder
 from nltk.corpus import stopwords
 from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.over_sampling import SMOTE
+from collections import Counter
+
 
 # 데이터 불러오기
 data1 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti.csv', encoding='utf-8')  # mbti500
@@ -56,11 +60,15 @@ def remove_stopwords(texts):
 X_train_padded = remove_stopwords(X_train_padded)
 X_valid_padded = remove_stopwords(X_valid_padded)
 
+# SMOTE를 적용하여 데이터 증강
+smote = SMOTE(random_state=0)
+X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_padded, Y_train)
+
 # 딥러닝 모델 구축 (LSTM) with Hyperparameter Tuning
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(input_dim=max_words, output_dim=64, input_length=max_length),
-    tf.keras.layers.LSTM(units = 32, dropout=0.5, recurrent_dropout=0.2),                                                           # 조정 가능한 하이퍼파라미터
-    tf.keras.layers.Dense(22, activation='relu'),                                                                                   # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.LSTM(units = 32, dropout=0.5, recurrent_dropout=0.2),                                                                       # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.Dense(22, activation='relu'),                                                                                               # 조정 가능한 하이퍼파라미터
     tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax') 
 ])
 
@@ -76,8 +84,12 @@ Y_train = np.array(Y_train)
 # Early Stopping 콜백 정의
 early_stopping = EarlyStopping(monitor='val_loss', patience=1, restore_best_weights=True)
 
+#오버샘플링을 적용한 훈련 데이터 생성
+oversampler = RandomOverSampler(random_state=0)
+X_train_oversampled, Y_train_oversampled = oversampler.fit_resample(X_train_padded, Y_train)
+
 # 모델 훈련
-model.fit(X_train_padded, Y_train, epochs=7, batch_size=32, validation_data=(X_valid_padded, Y_valid), callbacks=[early_stopping]) # 조정 가능한 하이퍼파라미터
+model.fit(X_train_oversampled, Y_train_oversampled, epochs=7, batch_size=32, validation_data=(X_valid_padded, Y_valid), callbacks=[early_stopping]) # 조정 가능한 하이퍼파라미터
 
 # 검증 데이터에서의 예측 및 평가
 pred_probs = model.predict(X_valid_padded)
