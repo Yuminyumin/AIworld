@@ -26,7 +26,11 @@ label_encoder = LabelEncoder()
 Y_encoded = label_encoder.fit_transform(Y)
 
 # 훈련 데이터와 검증 데이터 분리
-X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y_encoded, test_size=0.2, random_state=1)  # Y_encoded로 변경
+X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y_encoded, test_size=0.3, random_state=1)  # Y_encoded로 변경
+
+# 훈련 데이터 전처리
+X_train = X_train.apply(lambda x: str(x) if pd.notna(x) else '')  # NaN 값을 빈 문자열로 대체
+X_train = X_train.dropna()
 
 # 텍스트 전처리
 max_words = 5000  # 사용할 최대 단어 개수
@@ -67,7 +71,7 @@ model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=
 early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)
 
 # 모델 훈련
-model.fit(X_train_padded, Y_train, epochs=10, batch_size=64, validation_data=(X_valid_padded, Y_valid)) # 조정 가능한 하이퍼파라미터
+model.fit(X_train_padded, Y_train, epochs=10, batch_size=64, validation_data=(X_valid_padded, Y_valid),callbacks=[early_stopping]) # 조정 가능한 하이퍼파라미터
 
 # 검증 데이터에서의 예측 및 평가
 pred_probs = model.predict(X_valid_padded)
