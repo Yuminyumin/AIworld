@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from nltk.corpus import stopwords
+from tensorflow.keras.callbacks import EarlyStopping
 
 # 데이터 불러오기
 data1 = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti.csv', encoding='utf-8')  # mbti500
@@ -53,7 +54,7 @@ X_valid_padded = remove_stopwords(X_valid_padded)
 # 딥러닝 모델 구축 (LSTM) with Hyperparameter Tuning
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(input_dim=max_words, output_dim=64, input_length=max_length),
-    tf.keras.layers.LSTM(units = 128, dropout=0.2, recurrent_dropout=0.2), # 조정 가능한 하이퍼파라미터
+    tf.keras.layers.LSTM(units = 64, dropout=0.3, recurrent_dropout=0.2), # 조정 가능한 하이퍼파라미터
     tf.keras.layers.Dense(32, activation='relu'), # 조정 가능한 하이퍼파라미터
     tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax') 
 ])
@@ -61,6 +62,9 @@ model = tf.keras.Sequential([
 # 모델 컴파일
 learning_rate = 0.001  # 수정 가능한 학습률 값
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Early Stopping 콜백 정의
+early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)
 
 # 모델 훈련
 model.fit(X_train_padded, Y_train, epochs=10, batch_size=64, validation_data=(X_valid_padded, Y_valid)) # 조정 가능한 하이퍼파라미터
