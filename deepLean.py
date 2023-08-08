@@ -60,7 +60,6 @@ model = tf.keras.Sequential([
 
 # 모델 컴파일
 learning_rate = 0.001  # 수정 가능한 학습률 값
-optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 # 모델 훈련
