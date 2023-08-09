@@ -117,13 +117,13 @@ print("accuracy",accuracy)
 average_recall = recall_score(Y_valid, pred, average='macro')
 print("Average Recall:", average_recall)
 
-#클래스 개수 확인
-class_counts = train['type'].value_counts()
-print(class_counts)
-
 # 각 클래스별 recall 값 출력
 class_recall = recall_score(Y_valid, pred, average=None)
 print("Recall by Class:", class_recall)
+
+#클래스 개수 확인
+class_counts = train['type'].value_counts()
+print(class_counts)
 
 #클래스 불균형 시각화
 class_counts.plot(kind='bar')
