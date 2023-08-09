@@ -12,6 +12,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
 import pickle
+from sklearn.metrics import recall_score
 
 # 데이터 불러오기
 train = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti_total.csv', encoding='latin1')
@@ -97,11 +98,11 @@ text_clf.fit(X_train, Y_train)
 
 # 학습된 모델을 pickle 파일로 저장
 save_path = 'c:/Users/user/Desktop/mbtidata/MBTIgram.pkl'
-with open('MBTIgram.pkl', 'wb') as model_file:
+with open(save_path, 'wb') as model_file:
     pickle.dump(text_clf, model_file)
 
 # 저장된 모델을 다시 로드하여 예측 수행
-with open('MBTIgram.pkl', 'rb') as model_file:
+with open(save_path, 'rb') as model_file:
     loaded_model = pickle.load(model_file)
 
 # valid 데이터의 mbti 예측
@@ -112,9 +113,17 @@ print("pred",pred)
 accuracy = accuracy_score(pred, Y_valid)
 print("accuracy",accuracy)
 
+# 평균 recall 값 출력 (예: 'micro', 'macro', 'weighted')
+average_recall = recall_score(Y_valid, pred, average='macro')
+print("Average Recall:", average_recall)
+
 #클래스 개수 확인
 class_counts = train['type'].value_counts()
 print(class_counts)
+
+# 각 클래스별 recall 값 출력
+class_recall = recall_score(Y_valid, pred, average=None)
+print("Recall by Class:", class_recall)
 
 #클래스 불균형 시각화
 class_counts.plot(kind='bar')
