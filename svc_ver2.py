@@ -19,7 +19,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import SnowballStemmer
 from tqdm import tqdm
 
-train = pd.read_csv('c:\\Users\\신유민\\Desktop\\MBTI 500.csv', encoding='utf-8')
+train = pd.read_csv('c:/Users/user/Desktop/mbtidata/mbti.csv', encoding='utf-8')
 test = train.drop(['type'], axis=1)
 test.head()
 
@@ -68,6 +68,7 @@ Y= train.type
 
 X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y, test_size=0.2, random_state=1)
 
+#모델 훈련
 text_clf = Pipeline([('tfidf',TfidfVectorizer()),('clf',LinearSVC(C=0.3))])
 text_clf.fit(X_train, Y_train)
 
